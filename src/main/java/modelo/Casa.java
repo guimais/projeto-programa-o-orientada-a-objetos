@@ -1,7 +1,6 @@
 package modelo;
 
 public class Casa {
-
     private Posicao posicao;
     private Peca peca;
 

@@ -1,5 +1,4 @@
 package modelo.pecas;
-
 import modelo.Cor;
 import modelo.Peca;
 import modelo.Posicao;

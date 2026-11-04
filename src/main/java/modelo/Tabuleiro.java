@@ -66,6 +66,36 @@ public class Tabuleiro {
                 casas[l][c] = new Casa(new Posicao(l, c));
             }
         }
-        // As peças específicas serão instanciadas e posicionadas no Passo 4
+
+        Cor preta = new Cor(false);
+        Cor branca = new Cor(true);
+
+        // Peças Pretas (Linha 0 e Linha 1)
+        colocarPeca(new Posicao(0, 0), new modelo.pecas.Torre(preta, new Posicao(0, 0)));
+        colocarPeca(new Posicao(0, 1), new modelo.pecas.Cavalo(preta, new Posicao(0, 1)));
+        colocarPeca(new Posicao(0, 2), new modelo.pecas.Bispo(preta, new Posicao(0, 2)));
+        colocarPeca(new Posicao(0, 3), new modelo.pecas.Rainha(preta, new Posicao(0, 3)));
+        colocarPeca(new Posicao(0, 4), new modelo.pecas.Rei(preta, new Posicao(0, 4)));
+        colocarPeca(new Posicao(0, 5), new modelo.pecas.Bispo(preta, new Posicao(0, 5)));
+        colocarPeca(new Posicao(0, 6), new modelo.pecas.Cavalo(preta, new Posicao(0, 6)));
+        colocarPeca(new Posicao(0, 7), new modelo.pecas.Torre(preta, new Posicao(0, 7)));
+
+        for (int c = 0; c < 8; c++) {
+            colocarPeca(new Posicao(1, c), new modelo.pecas.Peao(preta, new Posicao(1, c)));
+        }
+
+        // Peças Brancas (Linha 6 e Linha 7)
+        for (int c = 0; c < 8; c++) {
+            colocarPeca(new Posicao(6, c), new modelo.pecas.Peao(branca, new Posicao(6, c)));
+        }
+
+        colocarPeca(new Posicao(7, 0), new modelo.pecas.Torre(branca, new Posicao(7, 0)));
+        colocarPeca(new Posicao(7, 1), new modelo.pecas.Cavalo(branca, new Posicao(7, 1)));
+        colocarPeca(new Posicao(7, 2), new modelo.pecas.Bispo(branca, new Posicao(7, 2)));
+        colocarPeca(new Posicao(7, 3), new modelo.pecas.Rainha(branca, new Posicao(7, 3)));
+        colocarPeca(new Posicao(7, 4), new modelo.pecas.Rei(branca, new Posicao(7, 4)));
+        colocarPeca(new Posicao(7, 5), new modelo.pecas.Bispo(branca, new Posicao(7, 5)));
+        colocarPeca(new Posicao(7, 6), new modelo.pecas.Cavalo(branca, new Posicao(7, 6)));
+        colocarPeca(new Posicao(7, 7), new modelo.pecas.Torre(branca, new Posicao(7, 7)));
     }
 }
