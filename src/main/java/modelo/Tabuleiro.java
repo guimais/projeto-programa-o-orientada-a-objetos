@@ -70,7 +70,6 @@ public class Tabuleiro {
         Cor preta = new Cor(false);
         Cor branca = new Cor(true);
 
-        // Peças Pretas (Linha 0 e Linha 1)
         colocarPeca(new Posicao(0, 0), new modelo.pecas.Torre(preta, new Posicao(0, 0)));
         colocarPeca(new Posicao(0, 1), new modelo.pecas.Cavalo(preta, new Posicao(0, 1)));
         colocarPeca(new Posicao(0, 2), new modelo.pecas.Bispo(preta, new Posicao(0, 2)));
@@ -84,7 +83,6 @@ public class Tabuleiro {
             colocarPeca(new Posicao(1, c), new modelo.pecas.Peao(preta, new Posicao(1, c)));
         }
 
-        // Peças Brancas (Linha 6 e Linha 7)
         for (int c = 0; c < 8; c++) {
             colocarPeca(new Posicao(6, c), new modelo.pecas.Peao(branca, new Posicao(6, c)));
         }
