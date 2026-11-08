@@ -1,5 +1,12 @@
 package modelo;
 
+import modelo.pecas.Bispo;
+import modelo.pecas.Cavalo;
+import modelo.pecas.Peao;
+import modelo.pecas.Rainha;
+import modelo.pecas.Rei;
+import modelo.pecas.Torre;
+
 public class Tabuleiro {
 
     private Casa[][] casas = new Casa[8][8];
@@ -20,18 +27,21 @@ public class Tabuleiro {
     }
 
     public Peca getPeca(Posicao posicao) {
-        if (!estaDentro(posicao)) {
+        Casa casa = getCasa(posicao);
+        if (casa == null) {
             return null;
         }
-        return casas[posicao.getLinha()][posicao.getColuna()].getPeca();
+        return casa.getPeca();
     }
 
     public void colocarPeca(Posicao posicao, Peca peca) {
-        if (estaDentro(posicao)) {
-            casas[posicao.getLinha()][posicao.getColuna()].setPeca(peca);
-            if (peca != null) {
-                peca.setPosicao(posicao);
-            }
+        Casa casa = getCasa(posicao);
+        if (casa == null) {
+            return;
+        }
+        casa.setPeca(peca);
+        if (peca != null) {
+            peca.setPosicao(posicao);
         }
     }
 
@@ -48,7 +58,6 @@ public class Tabuleiro {
         Peca capturada = getPeca(destino);
         colocarPeca(origem, null);
         colocarPeca(destino, peca);
-
         return capturada;
     }
 
@@ -56,44 +65,41 @@ public class Tabuleiro {
         if (posicao == null) {
             return false;
         }
-        return posicao.getLinha() >= 0 && posicao.getLinha() < 8 &&
-               posicao.getColuna() >= 0 && posicao.getColuna() < 8;
+        return posicao.getLinha() >= 0 && posicao.getLinha() < 8
+                && posicao.getColuna() >= 0 && posicao.getColuna() < 8;
     }
 
     public void montarPosicaoInicial() {
-        for (int l = 0; l < 8; l++) {
-            for (int c = 0; c < 8; c++) {
-                casas[l][c] = new Casa(new Posicao(l, c));
+        for (int linha = 0; linha < 8; linha++) {
+            for (int coluna = 0; coluna < 8; coluna++) {
+                casas[linha][coluna] = new Casa(new Posicao(linha, coluna));
             }
         }
 
         Cor preta = new Cor(false);
         Cor branca = new Cor(true);
 
-        colocarPeca(new Posicao(0, 0), new modelo.pecas.Torre(preta, new Posicao(0, 0)));
-        colocarPeca(new Posicao(0, 1), new modelo.pecas.Cavalo(preta, new Posicao(0, 1)));
-        colocarPeca(new Posicao(0, 2), new modelo.pecas.Bispo(preta, new Posicao(0, 2)));
-        colocarPeca(new Posicao(0, 3), new modelo.pecas.Rainha(preta, new Posicao(0, 3)));
-        colocarPeca(new Posicao(0, 4), new modelo.pecas.Rei(preta, new Posicao(0, 4)));
-        colocarPeca(new Posicao(0, 5), new modelo.pecas.Bispo(preta, new Posicao(0, 5)));
-        colocarPeca(new Posicao(0, 6), new modelo.pecas.Cavalo(preta, new Posicao(0, 6)));
-        colocarPeca(new Posicao(0, 7), new modelo.pecas.Torre(preta, new Posicao(0, 7)));
+        montarFileiraPrincipal(0, preta);
+        montarFileiraDePeoes(1, preta);
+        montarFileiraDePeoes(6, branca);
+        montarFileiraPrincipal(7, branca);
+    }
 
-        for (int c = 0; c < 8; c++) {
-            colocarPeca(new Posicao(1, c), new modelo.pecas.Peao(preta, new Posicao(1, c)));
+    private void montarFileiraDePeoes(int linha, Cor cor) {
+        for (int coluna = 0; coluna < 8; coluna++) {
+            Posicao posicao = new Posicao(linha, coluna);
+            colocarPeca(posicao, new Peao(cor, posicao));
         }
+    }
 
-        for (int c = 0; c < 8; c++) {
-            colocarPeca(new Posicao(6, c), new modelo.pecas.Peao(branca, new Posicao(6, c)));
-        }
-
-        colocarPeca(new Posicao(7, 0), new modelo.pecas.Torre(branca, new Posicao(7, 0)));
-        colocarPeca(new Posicao(7, 1), new modelo.pecas.Cavalo(branca, new Posicao(7, 1)));
-        colocarPeca(new Posicao(7, 2), new modelo.pecas.Bispo(branca, new Posicao(7, 2)));
-        colocarPeca(new Posicao(7, 3), new modelo.pecas.Rainha(branca, new Posicao(7, 3)));
-        colocarPeca(new Posicao(7, 4), new modelo.pecas.Rei(branca, new Posicao(7, 4)));
-        colocarPeca(new Posicao(7, 5), new modelo.pecas.Bispo(branca, new Posicao(7, 5)));
-        colocarPeca(new Posicao(7, 6), new modelo.pecas.Cavalo(branca, new Posicao(7, 6)));
-        colocarPeca(new Posicao(7, 7), new modelo.pecas.Torre(branca, new Posicao(7, 7)));
+    private void montarFileiraPrincipal(int linha, Cor cor) {
+        colocarPeca(new Posicao(linha, 0), new Torre(cor, new Posicao(linha, 0)));
+        colocarPeca(new Posicao(linha, 1), new Cavalo(cor, new Posicao(linha, 1)));
+        colocarPeca(new Posicao(linha, 2), new Bispo(cor, new Posicao(linha, 2)));
+        colocarPeca(new Posicao(linha, 3), new Rainha(cor, new Posicao(linha, 3)));
+        colocarPeca(new Posicao(linha, 4), new Rei(cor, new Posicao(linha, 4)));
+        colocarPeca(new Posicao(linha, 5), new Bispo(cor, new Posicao(linha, 5)));
+        colocarPeca(new Posicao(linha, 6), new Cavalo(cor, new Posicao(linha, 6)));
+        colocarPeca(new Posicao(linha, 7), new Torre(cor, new Posicao(linha, 7)));
     }
 }

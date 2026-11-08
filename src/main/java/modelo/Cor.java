@@ -15,9 +15,8 @@ public class Cor {
     public String getNome() {
         if (branca) {
             return "Branca";
-        } else {
-            return "Preta";
         }
+        return "Preta";
     }
 
     public boolean mesmaCor(Cor outra) {
