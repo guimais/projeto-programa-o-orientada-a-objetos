@@ -36,12 +36,11 @@ public class Tabuleiro {
 
     public void colocarPeca(Posicao posicao, Peca peca) {
         Casa casa = getCasa(posicao);
-        if (casa == null) {
-            return;
-        }
-        casa.setPeca(peca);
-        if (peca != null) {
-            peca.setPosicao(posicao);
+        if (casa != null) {
+            casa.setPeca(peca);
+            if (peca != null) {
+                peca.setPosicao(posicao);
+            }
         }
     }
 

@@ -9,13 +9,12 @@ public class Placar {
     private int pontosPretas;
 
     public void registrarCaptura(Peca capturada) {
-        if (capturada == null) {
-            return;
-        }
-        if (capturada.getCor().isBranca()) {
-            pontosPretas = pontosPretas + capturada.getValor();
-        } else {
-            pontosBrancas = pontosBrancas + capturada.getValor();
+        if (capturada != null) {
+            if (capturada.getCor().isBranca()) {
+                pontosPretas = pontosPretas + capturada.getValor();
+            } else {
+                pontosBrancas = pontosBrancas + capturada.getValor();
+            }
         }
     }
 
