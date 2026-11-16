@@ -6,6 +6,8 @@ import modelo.Cor;
 import modelo.Peca;
 import modelo.Posicao;
 import modelo.Tabuleiro;
+import modelo.pecas.Bispo;
+import modelo.pecas.Cavalo;
 import modelo.pecas.Peao;
 import modelo.pecas.Rainha;
 import modelo.pecas.Rei;
@@ -140,6 +142,42 @@ public class GerenciadorDePartida {
         return false;
     }
 
+    private boolean temMaterialInsuficiente() {
+        ArrayList<Peca> pecas = new ArrayList<>();
+
+        for (int linha = 0; linha < 8; linha++) {
+            for (int coluna = 0; coluna < 8; coluna++) {
+                Peca peca = tabuleiro.getPeca(new Posicao(linha, coluna));
+                if (peca != null && !(peca instanceof Rei)) {
+                    pecas.add(peca);
+                }
+            }
+        }
+
+        if (pecas.size() == 0) {
+            return true;
+        }
+
+        if (pecas.size() == 1) {
+            Peca unica = pecas.get(0);
+            return unica instanceof Bispo || unica instanceof Cavalo;
+        }
+
+        if (pecas.size() == 2) {
+            Peca primeira = pecas.get(0);
+            Peca segunda = pecas.get(1);
+            if (primeira instanceof Bispo && segunda instanceof Bispo) {
+                if (!primeira.getCor().mesmaCor(segunda.getCor())) {
+                    int corCasa1 = (primeira.getPosicao().getLinha() + primeira.getPosicao().getColuna()) % 2;
+                    int corCasa2 = (segunda.getPosicao().getLinha() + segunda.getPosicao().getColuna()) % 2;
+                    return corCasa1 == corCasa2;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private void atualizarEstado() {
         boolean xeque = estaEmXeque(turnos.getVez());
         boolean temLance = temMovimentoLegal();
@@ -150,6 +188,9 @@ public class GerenciadorDePartida {
         }
         if (!temLance) {
             situacao = situacao + 2;
+        }
+        if (temMaterialInsuficiente()) {
+            situacao = 2;
         }
 
         switch (situacao) {
