@@ -19,6 +19,7 @@ public class GerenciadorDePartida {
     private Placar placar = new Placar();
     private HistoricoDeJogadas historico = new HistoricoDeJogadas();
     private String estado = "EM_ANDAMENTO";
+    private int lancesSemCapturaOuPeao = 0;
 
     public Tabuleiro getTabuleiro() {
         return tabuleiro;
@@ -38,6 +39,10 @@ public class GerenciadorDePartida {
 
     public String getEstado() {
         return estado;
+    }
+
+    public int getLancesSemCapturaOuPeao() {
+        return lancesSemCapturaOuPeao;
     }
 
     public void tentarJogada(Posicao origem, Posicao destino) throws JogadaInvalidaException {
@@ -62,6 +67,11 @@ public class GerenciadorDePartida {
         }
 
         Peca capturada = tabuleiro.moverPeca(origem, destino);
+        if (peca instanceof Peao || capturada != null) {
+            lancesSemCapturaOuPeao = 0;
+        } else {
+            lancesSemCapturaOuPeao = lancesSemCapturaOuPeao + 1;
+        }
         placar.registrarCaptura(capturada);
         historico.registrar(origem, destino);
         promover(peca, destino);
@@ -190,6 +200,9 @@ public class GerenciadorDePartida {
             situacao = situacao + 2;
         }
         if (temMaterialInsuficiente()) {
+            situacao = 2;
+        }
+        if (lancesSemCapturaOuPeao >= 100 && situacao != 3) {
             situacao = 2;
         }
 
