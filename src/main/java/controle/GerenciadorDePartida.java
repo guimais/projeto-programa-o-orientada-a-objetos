@@ -17,6 +17,8 @@ public class GerenciadorDePartida {
     // pode ser EM_ANDAMENTO, XEQUE, XEQUE_MATE ou EMPATE
     private String estado = "EM_ANDAMENTO";
     private int lancesSemCapturaOuPeao = 0;
+    // guarda a casa pulada por um peão que andou 2 casas no lance anterior
+    private Posicao alvoEnPassant = null;
 
     public Tabuleiro getTabuleiro() {
         return tabuleiro;
@@ -65,7 +67,47 @@ public class GerenciadorDePartida {
             throw new JogadaInvalidaException("Movimento inválido");
         }
 
+        boolean ehRoque = peca.getSimbolo().equals("R")
+                && Math.abs(destino.getColuna() - origem.getColuna()) == 2;
+        boolean ehEnPassant = peca.getSimbolo().equals("P")
+                && alvoEnPassant != null
+                && destino.mesmaPosicao(alvoEnPassant);
+
         Peca capturada = tabuleiro.moverPeca(origem, destino);
+        peca.marcarComoMovida();
+
+        // se foi roque, move a torre correspondente
+        if (ehRoque) {
+            if (destino.getColuna() == 6) {
+                Posicao origemTorre = new Posicao(origem.getLinha(), 7);
+                Posicao destinoTorre = new Posicao(origem.getLinha(), 5);
+                Peca torre = tabuleiro.getPeca(origemTorre);
+                tabuleiro.moverPeca(origemTorre, destinoTorre);
+                torre.marcarComoMovida();
+            } else {
+                Posicao origemTorre = new Posicao(origem.getLinha(), 0);
+                Posicao destinoTorre = new Posicao(origem.getLinha(), 3);
+                Peca torre = tabuleiro.getPeca(origemTorre);
+                tabuleiro.moverPeca(origemTorre, destinoTorre);
+                torre.marcarComoMovida();
+            }
+        }
+
+        // se foi en passant, remove o peão adversário que estava ao lado
+        if (ehEnPassant) {
+            Posicao posPeaoCapturado = new Posicao(origem.getLinha(), destino.getColuna());
+            capturada = tabuleiro.getPeca(posPeaoCapturado);
+            tabuleiro.colocarPeca(posPeaoCapturado, null);
+        }
+
+        // define ou limpa a casa alvo do en passant para o próximo turno
+        if (peca.getSimbolo().equals("P") && Math.abs(destino.getLinha() - origem.getLinha()) == 2) {
+            int linhaIntermediaria = (origem.getLinha() + destino.getLinha()) / 2;
+            alvoEnPassant = new Posicao(linhaIntermediaria, origem.getColuna());
+        } else {
+            alvoEnPassant = null;
+        }
+
         // regra dos 50 lances, zera o contador se moveu peão ou capturou alguma peça
         if (peca.getSimbolo().equals("P") || capturada != null) {
             lancesSemCapturaOuPeao = 0;
@@ -93,12 +135,19 @@ public class GerenciadorDePartida {
                 legais.add(possiveis.get(i));
             }
         }
+
+        adicionarMovimentosDeRoque(peca, legais);
+        adicionarMovimentoEnPassant(peca, legais);
+
         return legais;
     }
 
     // vê se alguma peça adversária consegue alcançar a casa do rei
     public boolean estaEmXeque(Cor cor) {
         Posicao rei = encontrarRei(cor);
+        if (rei == null) {
+            return false;
+        }
 
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
@@ -123,6 +172,77 @@ public class GerenciadorDePartida {
         boolean xeque = estaEmXeque(peca.getCor());
         tabuleiro.moverPeca(destino, origem);
         tabuleiro.colocarPeca(destino, capturada);
+        return xeque;
+    }
+
+    // adiciona roque pequeno e roque grande se rei e torre não moveram e o caminho está livre e seguro
+    private void adicionarMovimentosDeRoque(Peca peca, ArrayList<Posicao> legais) {
+        if (!peca.getSimbolo().equals("R") || peca.jaMoveu() || estaEmXeque(peca.getCor())) {
+            return;
+        }
+
+        Posicao origem = peca.getPosicao();
+        int linha = origem.getLinha();
+
+        // roque pequeno (torre na coluna 7)
+        Peca torreDireita = tabuleiro.getPeca(new Posicao(linha, 7));
+        if (torreDireita != null && torreDireita.getSimbolo().equals("T")
+                && torreDireita.getCor().mesmaCor(peca.getCor()) && !torreDireita.jaMoveu()) {
+            Posicao passagem = new Posicao(linha, 5);
+            Posicao destino = new Posicao(linha, 6);
+            if (tabuleiro.getPeca(passagem) == null && tabuleiro.getPeca(destino) == null) {
+                if (!deixaReiEmXeque(origem, passagem) && !deixaReiEmXeque(origem, destino)) {
+                    legais.add(destino);
+                }
+            }
+        }
+
+        // roque grande (torre na coluna 0)
+        Peca torreEsquerda = tabuleiro.getPeca(new Posicao(linha, 0));
+        if (torreEsquerda != null && torreEsquerda.getSimbolo().equals("T")
+                && torreEsquerda.getCor().mesmaCor(peca.getCor()) && !torreEsquerda.jaMoveu()) {
+            Posicao casaB = new Posicao(linha, 1);
+            Posicao destino = new Posicao(linha, 2);
+            Posicao passagem = new Posicao(linha, 3);
+            if (tabuleiro.getPeca(casaB) == null && tabuleiro.getPeca(destino) == null
+                    && tabuleiro.getPeca(passagem) == null) {
+                if (!deixaReiEmXeque(origem, passagem) && !deixaReiEmXeque(origem, destino)) {
+                    legais.add(destino);
+                }
+            }
+        }
+    }
+
+    // adiciona a captura en passant se houver um peão adversário elegível no lance imediatamente anterior
+    private void adicionarMovimentoEnPassant(Peca peca, ArrayList<Posicao> legais) {
+        if (!peca.getSimbolo().equals("P") || alvoEnPassant == null) {
+            return;
+        }
+
+        Posicao origem = peca.getPosicao();
+        int direcao = peca.getCor().isBranca() ? -1 : 1;
+
+        if (origem.getLinha() + direcao == alvoEnPassant.getLinha()
+                && Math.abs(origem.getColuna() - alvoEnPassant.getColuna()) == 1) {
+            if (!deixaReiEmXequeEnPassant(origem, alvoEnPassant)) {
+                legais.add(alvoEnPassant);
+            }
+        }
+    }
+
+    // simula o en passant removendo o peão capturado ao lado para evitar xeque descoberto
+    private boolean deixaReiEmXequeEnPassant(Posicao origem, Posicao destino) {
+        Peca peao = tabuleiro.getPeca(origem);
+        Posicao posCapturado = new Posicao(origem.getLinha(), destino.getColuna());
+        Peca capturado = tabuleiro.getPeca(posCapturado);
+
+        tabuleiro.moverPeca(origem, destino);
+        tabuleiro.colocarPeca(posCapturado, null);
+
+        boolean xeque = estaEmXeque(peao.getCor());
+
+        tabuleiro.moverPeca(destino, origem);
+        tabuleiro.colocarPeca(posCapturado, capturado);
         return xeque;
     }
 
