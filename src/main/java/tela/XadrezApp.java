@@ -8,6 +8,8 @@ import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.texture.Texture;
 
 import controle.ControladorDeTurnos;
+import controle.GerenciadorDePartida;
+import controle.JogadaInvalidaException;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -23,6 +25,7 @@ public class XadrezApp extends GameApplication {
 
     private static final int TAMANHO_CASA = 80;
 
+    private GerenciadorDePartida partida;
     private Tabuleiro tabuleiro;
     private ControladorDeTurnos turnos;
     private Posicao origemSelecionada;
@@ -39,11 +42,12 @@ public class XadrezApp extends GameApplication {
         settings.setHeight(640);
     }
 
-    // Inicializa o tabuleiro, os turnos e limpa a seleção
+    // Inicializa a partida, o tabuleiro, os turnos e limpa a seleção
     @Override
     protected void initGame() {
-        tabuleiro = new Tabuleiro();
-        turnos = new ControladorDeTurnos();
+        partida = new GerenciadorDePartida();
+        tabuleiro = partida.getTabuleiro();
+        turnos = partida.getTurnos();
         origemSelecionada = null;
         movimentosPossiveis = new ArrayList<>();
     }
@@ -149,20 +153,23 @@ public class XadrezApp extends GameApplication {
             if (pecaClicada != null) {
                 if (turnos.podeMover(pecaClicada)) {
                     origemSelecionada = posicaoClicada;
-                    movimentosPossiveis = pecaClicada.calcularMovimentosPossiveis(tabuleiro);
+                    movimentosPossiveis = partida.movimentosLegais(posicaoClicada);
                 }
             }
         } else {
             if (ehMovimentoPossivel(posicaoClicada)) {
-                tabuleiro.moverPeca(origemSelecionada, posicaoClicada);
-                turnos.passarVez();
+                try {
+                    partida.tentarJogada(origemSelecionada, posicaoClicada);
+                } catch (JogadaInvalidaException erro) {
+                    System.out.println(erro.getMessage());
+                }
 
                 origemSelecionada = null;
                 movimentosPossiveis.clear();
             } else if (pecaClicada != null) {
                 if (turnos.podeMover(pecaClicada)) {
                     origemSelecionada = posicaoClicada;
-                    movimentosPossiveis = pecaClicada.calcularMovimentosPossiveis(tabuleiro);
+                    movimentosPossiveis = partida.movimentosLegais(posicaoClicada);
                 } else {
                     origemSelecionada = null;
                     movimentosPossiveis.clear();
