@@ -83,18 +83,44 @@ public class XadrezApp extends GameApplication {
         camadaPainel.getChildren().add(fundoPainel);
 
         Text textoRodada = new Text("Rodada: " + turnos.getRodada());
-        textoRodada.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+        textoRodada.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         textoRodada.setFill(Color.LIGHTGRAY);
         textoRodada.setTranslateX(660);
         textoRodada.setTranslateY(40);
 
         Text textoVez = new Text("Vez: " + turnos.getVez().getNome());
-        textoVez.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        textoVez.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         textoVez.setFill(Color.WHITE);
         textoVez.setTranslateX(660);
         textoVez.setTranslateY(80);
 
-        camadaPainel.getChildren().addAll(textoRodada, textoVez);
+
+        String mensagem = "em andamento";
+
+        if(partida.getEstado().equals("XEQUE")){
+            mensagem = "Xeque";
+        }
+
+        if(partida.getEstado().equals("XEQUE_MATE")){
+            mensagem = "Xeque Mate";
+
+        }
+
+        if(partida.getEstado().equals("EMPATE")){
+            mensagem = "Empate";
+
+        }
+
+
+
+        Text textoEstado  = new Text("Status: " + mensagem);
+        textoEstado.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        textoEstado.setFill(Color.ORANGE);
+        textoEstado.setTranslateX(660);
+        textoEstado.setTranslateY(120);
+
+
+        camadaPainel.getChildren().addAll(textoRodada, textoVez, textoEstado);
 
         // Desenha destaques, peças e bolinhas de movimento
         for (int linha = 0; linha < 8; linha++) {
@@ -147,6 +173,12 @@ public class XadrezApp extends GameApplication {
 
     // Trata o clique na casa para selecionar, mover ou trocar a peça
     private void tratarCliqueCasa(Posicao posicaoClicada) {
+
+        //testa as situacoes de xeque mate e empate p acabar o jogo
+        if(partida.getEstado().equals("XEQUE_MATE") || partida.getEstado().equals("EMPATE")){
+            return;
+        }
+
         Peca pecaClicada = tabuleiro.getPeca(posicaoClicada);
 
         if (origemSelecionada == null) {
