@@ -6,7 +6,10 @@ import modelo.Cor;
 import modelo.Peca;
 import modelo.Posicao;
 import modelo.Tabuleiro;
+import modelo.pecas.Bispo;
+import modelo.pecas.Cavalo;
 import modelo.pecas.Rainha;
+import modelo.pecas.Torre;
 
 public class GerenciadorDePartida {
 
@@ -44,7 +47,20 @@ public class GerenciadorDePartida {
         return lancesSemCapturaOuPeao;
     }
 
+    // verifica se o lance é de um peão chegando na última linha (precisa escolher a peça)
+    public boolean ehPromocao(Posicao origem, Posicao destino) {
+        Peca peca = tabuleiro.getPeca(origem);
+        return peca != null && peca.getSimbolo().equals("P")
+                && (destino.getLinha() == 0 || destino.getLinha() == 7);
+    }
+
+    // se não informar a peça da promoção, vira rainha
     public void tentarJogada(Posicao origem, Posicao destino) throws JogadaInvalidaException {
+        tentarJogada(origem, destino, "D");
+    }
+
+    // pecaPromocao: "D" rainha, "T" torre, "B" bispo, "C" cavalo
+    public void tentarJogada(Posicao origem, Posicao destino, String pecaPromocao) throws JogadaInvalidaException {
         // bloqueia novas jogadas se a partida já acabou
         if (estado.equals("XEQUE_MATE") || estado.equals("EMPATE")) {
             throw new JogadaInvalidaException("A partida terminou");
@@ -116,7 +132,7 @@ public class GerenciadorDePartida {
         }
         placar.registrarCaptura(capturada);
         historico.registrar(origem, destino);
-        promover(peca, destino);
+        promover(peca, destino, pecaPromocao);
         turnos.passarVez();
         atualizarEstado();
     }
@@ -259,10 +275,26 @@ public class GerenciadorDePartida {
         return null;
     }
 
-    // quando um peão chega na linha 0 ou 7 ele vira rainha automaticamente
-    private void promover(Peca peca, Posicao destino) {
+    // quando um peão chega na linha 0 ou 7 ele vira a peça escolhida pelo jogador
+    private void promover(Peca peca, Posicao destino, String pecaPromocao) {
         if (peca.getSimbolo().equals("P") && (destino.getLinha() == 0 || destino.getLinha() == 7)) {
-            tabuleiro.colocarPeca(destino, new Rainha(peca.getCor(), destino));
+            Peca nova;
+            switch (pecaPromocao) {
+                case "T":
+                    nova = new Torre(peca.getCor(), destino);
+                    break;
+                case "B":
+                    nova = new Bispo(peca.getCor(), destino);
+                    break;
+                case "C":
+                    nova = new Cavalo(peca.getCor(), destino);
+                    break;
+                default:
+                    nova = new Rainha(peca.getCor(), destino);
+            }
+            // a torre promovida já conta como movida (não pode fazer roque)
+            nova.marcarComoMovida();
+            tabuleiro.colocarPeca(destino, nova);
         }
     }
 
