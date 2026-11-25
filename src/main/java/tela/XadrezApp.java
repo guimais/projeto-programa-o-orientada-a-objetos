@@ -102,7 +102,12 @@ public class XadrezApp extends GameApplication {
         }
 
         if(partida.getEstado().equals("XEQUE_MATE")){
-            mensagem = "Xeque Mate";
+           if(turnos.getVez().isBranca()){
+               mensagem = "Xeque Mate\nPretas vencem";
+           }
+           else{
+               mensagem = "Xeque Mate\nBrancas vencem";
+           }
 
         }
 
